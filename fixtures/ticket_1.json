@@ -1,0 +1,18 @@
+{
+  "key": "KAN-1",
+  "summary": "Add card count badge to each column header",
+  "description": "Each column header (To Do, Doing, Done) should display the number of cards currently in that column, shown as a small badge next to the title. For example: 'To Do (2)'. The count must update based on the cards rendered from cards.json.",
+  "acceptance_criteria": [
+    "Each of the three column headers displays a count in parentheses after its name",
+    "The count reflects the actual number of cards in that column",
+    "No changes to cards.json structure are required",
+    "Existing tests must still pass"
+  ],
+  "labels": [
+    "ai-augmented"
+  ],
+  "target_files_hint": [
+    "app.js",
+    "index.html"
+  ]
+}

@@ -1,0 +1,10 @@
+.venv/
+__pycache__/
+*.pyc
+.env
+*.pem
+/tmp/
+.DS_Store
+.pytest_cache/
+github-app-key.pem
+*.pem

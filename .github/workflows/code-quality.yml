@@ -1,0 +1,38 @@
+name: Code quality CI
+
+on:
+  push:
+    branches: ["feature-**", "dev", "main"]
+    paths:
+      - "**/*.py"
+      - "**/*.ipynb"
+      - "pyproject.toml"
+      - "uv.lock"
+      - ".github/workflows/**"
+  pull_request:
+    branches: [main, dev]
+    paths:
+      - "**/*.py"
+      - "**/*.ipynb"
+      - "pyproject.toml"
+      - "uv.lock"
+      - ".github/workflows/**"
+  workflow_dispatch:
+
+jobs:
+  lint:
+    name: Python Code Quality
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v6
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@v7
+      with:
+        version: "latest"
+
+    - name: Run Ruff checks
+      run: |
+        uvx ruff@0.15.1 check .
+        uvx ruff@0.15.1 format --check .

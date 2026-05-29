@@ -1,0 +1,30 @@
+# In .pre-commit-config.yaml
+default_stages: [pre-commit]  # Most hooks run at commit time
+
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.9.7  # Update to latest stable version
+    hooks:
+      - id: ruff
+      - id: ruff-format
+
+  - repo: https://github.com/commitizen-tools/commitizen
+    rev: v3.12.0
+    hooks:
+      - id: commitizen
+        stages: [commit-msg]
+
+  - repo: local
+    hooks:
+      - id: check-commit-message-length
+        name: Check commit message length
+        entry: bash -c 'head -1 "$1" | grep -q "^.\\{1,50\\}$" || (echo "First line of commit message must be 50 chars or less" && exit 1)' --
+        language: system
+        stages: [commit-msg]
+        args: [.git/COMMIT_EDITMSG]
+
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.26.0
+    hooks:
+      - id: gitleaks
+        stages: [pre-commit]

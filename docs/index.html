@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>DevForge — Jira tickets into reviewed pull requests · Agentic AI engineering agent</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🛠️</text></svg>" />
+<meta name="description" content="DevForge is an agentic AI engineering agent that turns Jira tickets into reviewed pull requests — it generates code, validates with tests, self-corrects on failure, enforces engineering policy as code, and routes every change through human approval. Never auto-merges." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --bg:#0b0a07;
+    --bg-2:#120e08;
+    --surface:rgba(255,255,255,.035);
+    --surface-2:rgba(255,255,255,.06);
+    --glass:rgba(26,20,11,.55);
+    --line:rgba(180,150,100,.15);
+    --line-2:rgba(180,150,100,.26);
+    --em:#fbbf24;
+    --em-2:#f59e0b;
+    --em-3:#ea580c;
+    --gold:#fcd34d;
+    --ember:#fb923c;
+    --ink:#f8f5ef;
+    --ink-2:#e3d9c6;
+    --muted:#a89878;
+    --muted-2:#7c6f57;
+    --ok:#34d399;
+    --bad:#f87171;
+    --grad:linear-gradient(135deg,#fde68a 0%,#fbbf24 38%,#f59e0b 68%,#ea580c 100%);
+    --grad-text:linear-gradient(120deg,#fde68a,#fbbf24 50%,#fb923c);
+    --r:18px; --r-sm:13px;
+    --sh:0 1px 2px rgba(0,0,0,.4);
+    --sh-md:0 20px 50px rgba(0,0,0,.5);
+    --sh-glow:0 0 0 1px rgba(251,191,36,.18),0 24px 60px rgba(234,88,12,.2);
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0;background:var(--bg);color:var(--ink);
+    font-family:"Inter","Segoe UI",-apple-system,BlinkMacSystemFont,sans-serif;
+    line-height:1.65;-webkit-font-smoothing:antialiased;overflow-x:hidden;
+  }
+  /* ambient glows — molten forge */
+  body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
+    background:
+      radial-gradient(820px 520px at 80% -8%,rgba(245,158,11,.2),transparent 60%),
+      radial-gradient(700px 520px at 6% 10%,rgba(234,88,12,.13),transparent 60%),
+      radial-gradient(900px 720px at 50% 122%,rgba(251,191,36,.12),transparent 60%)}
+  a{color:var(--em);text-decoration:none}
+  a:hover{color:var(--gold)}
+  .wrap{max-width:1140px;margin:0 auto;padding:0 26px;position:relative;z-index:1}
+  .section{padding:104px 0}
+  h1,h2,h3,.brand,.eyebrow,.stat .n,.btn{font-family:"Space Grotesk","Inter",sans-serif}
+  h2{font-size:clamp(2rem,4vw,3rem);font-weight:700;letter-spacing:-.03em;margin:0 0 16px;line-height:1.08}
+  h3{font-size:1.12rem;font-weight:600;margin:0 0 8px;letter-spacing:-.01em;color:#fff}
+  .grad-text{background:var(--grad-text);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .eyebrow{display:inline-flex;align-items:center;gap:9px;font-size:.74rem;font-weight:600;letter-spacing:.22em;
+    text-transform:uppercase;color:var(--em);margin-bottom:18px}
+  .eyebrow::before{content:"";width:26px;height:1.5px;background:linear-gradient(90deg,var(--em),transparent)}
+  .lead{color:var(--ink-2);font-size:1.12rem;max-width:680px;margin:0}
+  .center{text-align:center}.center .eyebrow{justify-content:center}.center .lead{margin:0 auto}
+
+  .reveal{opacity:0;transform:translateY(26px);transition:opacity .8s cubic-bezier(.2,.7,.2,1),transform .8s cubic-bezier(.2,.7,.2,1)}
+  .reveal.in{opacity:1;transform:none}
+
+  /* nav */
+  .topbar{position:sticky;top:0;z-index:80;backdrop-filter:blur(16px) saturate(160%);
+    background:rgba(11,10,7,.62);border-bottom:1px solid var(--line)}
+  .topbar .wrap{display:flex;align-items:center;gap:18px;height:66px}
+  .brand{display:flex;align-items:center;gap:11px;font-weight:700;letter-spacing:-.01em;font-size:1.02rem;color:#fff}
+  .logo{width:32px;height:32px;border-radius:9px;background:var(--grad);display:grid;place-items:center;
+    font-size:1rem;box-shadow:0 0 18px rgba(245,158,11,.5)}
+  .navlinks{margin-left:auto;display:flex;align-items:center;gap:28px;font-size:.92rem}
+  .navlinks a{color:var(--muted);font-weight:500}
+  .navlinks a:hover{color:#fff}
+  .nav-cta{padding:9px 17px;border-radius:10px;border:1px solid var(--line-2);color:#fff!important;font-weight:600;
+    background:var(--surface)}
+  .nav-cta:hover{border-color:var(--em);box-shadow:0 0 0 3px rgba(251,191,36,.12)}
+  @media(max-width:780px){.navlinks a:not(.nav-cta){display:none}}
+
+  /* hero */
+  .hero .wrap{display:grid;grid-template-columns:1.04fr .96fr;gap:54px;align-items:center;padding:96px 26px 80px}
+  @media(max-width:940px){.hero .wrap{grid-template-columns:1fr;gap:40px;padding-top:64px}}
+  .kicker{display:block;font-family:"Space Grotesk",sans-serif;font-weight:700;font-size:.95rem;letter-spacing:-.01em;
+    color:var(--em);margin-bottom:14px}
+  .pill{display:inline-flex;align-items:center;gap:8px;font-size:.78rem;font-weight:600;color:var(--ink-2);
+    padding:7px 14px;border-radius:999px;background:var(--surface);border:1px solid var(--line);margin-bottom:26px}
+  .pill .dot{width:7px;height:7px;border-radius:50%;background:var(--em);box-shadow:0 0 10px var(--em)}
+  h1{font-size:clamp(2.5rem,5.6vw,3.95rem);font-weight:700;letter-spacing:-.04em;line-height:1.04;margin:0 0 22px;color:#fff}
+  .hero .sub{font-size:1.14rem;color:var(--muted);max-width:560px;margin:0 0 34px}
+  .btnrow{display:flex;flex-wrap:wrap;gap:14px;margin-bottom:40px}
+  .btn{display:inline-flex;align-items:center;gap:9px;padding:14px 24px;border-radius:12px;font-size:.95rem;
+    font-weight:600;cursor:pointer;transition:transform .18s,box-shadow .18s,border-color .18s}
+  .btn.primary{background:var(--grad);color:#2a1c06;border:none;box-shadow:0 14px 34px rgba(234,88,12,.32)}
+  .btn.primary:hover{transform:translateY(-2px);box-shadow:0 20px 46px rgba(234,88,12,.5)}
+  .btn.ghost{background:var(--surface);color:#fff;border:1px solid var(--line-2)}
+  .btn.ghost:hover{transform:translateY(-2px);border-color:var(--em)}
+  .stats{display:flex;gap:34px;flex-wrap:wrap}
+  .stat .n{font-size:1.7rem;font-weight:700;background:var(--grad-text);-webkit-background-clip:text;background-clip:text;
+    color:transparent;line-height:1;letter-spacing:-.02em}
+  .stat .l{font-size:.8rem;color:var(--muted-2);margin-top:5px}
+
+  /* glass card generic */
+  .glass{background:var(--glass);border:1px solid var(--line);border-radius:var(--r);backdrop-filter:blur(12px);
+    box-shadow:var(--sh-md);position:relative;overflow:hidden}
+  .glass::before{content:"";position:absolute;inset:0;border-radius:var(--r);padding:1px;pointer-events:none;
+    background:linear-gradient(140deg,rgba(251,191,36,.4),transparent 40%);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+    -webkit-mask-composite:xor;mask-composite:exclude;opacity:.55}
+
+  /* hero console — agent run log */
+  .console{padding:0}
+  .console-bar{display:flex;align-items:center;gap:9px;padding:14px 18px;border-bottom:1px solid var(--line);
+    background:rgba(255,255,255,.02)}
+  .console-bar .av{width:32px;height:32px;border-radius:9px;background:var(--grad);display:grid;place-items:center;font-size:.95rem}
+  .console-bar .nm{font-weight:600;font-size:.9rem;color:#fff;line-height:1.2}
+  .console-bar .st{font-size:.72rem;color:var(--em);display:flex;align-items:center;gap:5px}
+  .console-bar .st::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--em);box-shadow:0 0 8px var(--em)}
+  .console-bar .tag{margin-left:auto;font-size:.62rem;font-weight:700;letter-spacing:.08em;color:var(--gold);
+    background:rgba(252,211,77,.1);border:1px solid rgba(252,211,77,.26);padding:4px 9px;border-radius:6px}
+  .console-body{padding:18px;display:flex;flex-direction:column;gap:9px;font-family:"JetBrains Mono",ui-monospace,monospace}
+  .ticket{display:flex;align-items:center;gap:9px;padding:11px 13px;border-radius:11px;background:rgba(251,191,36,.07);
+    border:1px solid rgba(251,191,36,.24);font-size:.82rem;color:var(--ink)}
+  .ticket .jk{font-weight:600;color:var(--gold);font-size:.72rem;background:rgba(252,211,77,.12);padding:2px 7px;border-radius:5px;flex:0 0 auto}
+  .logln{display:flex;align-items:flex-start;gap:9px;font-size:.8rem;color:var(--ink-2);line-height:1.5;padding-left:2px}
+  .logln .gl{flex:0 0 auto}
+  .logln .gl.ok{color:var(--ok)}
+  .logln .dim{color:var(--muted-2)}
+  .pr{display:flex;align-items:center;gap:8px;margin-top:5px;font-size:.8rem;font-weight:600;color:#2a1c06;
+    background:var(--grad);padding:10px 13px;border-radius:10px;box-shadow:0 10px 26px rgba(234,88,12,.28)}
+
+  /* marquee strip */
+  .strip{border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:rgba(255,255,255,.015)}
+  .strip .wrap{display:flex;align-items:center;gap:13px;flex-wrap:wrap;justify-content:center;padding:22px 26px}
+  .strip .lbl{font-size:.72rem;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--muted-2);margin-right:6px}
+  .ms{display:inline-flex;align-items:center;gap:8px;font-size:.86rem;color:var(--ink-2);font-weight:500;
+    padding:7px 13px;border-radius:9px;border:1px solid var(--line);background:var(--surface)}
+  .ms .sq{width:8px;height:8px;border-radius:3px;background:var(--em);box-shadow:0 0 8px var(--em)}
+
+  /* grids */
+  .grid{display:grid;gap:18px}
+  .g3{grid-template-columns:repeat(3,1fr)}
+  @media(max-width:880px){.g3{grid-template-columns:1fr}}
+  .card{padding:28px}
+  .card .ico{width:48px;height:48px;border-radius:13px;display:grid;place-items:center;font-size:1.35rem;margin-bottom:18px;
+    background:linear-gradient(140deg,rgba(251,191,36,.16),rgba(234,88,12,.06));border:1px solid rgba(251,191,36,.22)}
+  .card p{color:var(--muted);margin:0;font-size:.94rem}
+  .card .tags{display:flex;gap:7px;flex-wrap:wrap;margin-top:14px}
+  .card .t{font-size:.7rem;font-weight:600;color:var(--em);background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.18);
+    padding:3px 9px;border-radius:6px;font-family:"JetBrains Mono",monospace}
+  .lift{transition:transform .2s,border-color .2s,box-shadow .2s}
+  .lift:hover{transform:translateY(-5px);border-color:var(--line-2);box-shadow:var(--sh-glow)}
+
+  /* spotlight (loop / policy) */
+  .spot{display:grid;grid-template-columns:.92fr 1.08fr;gap:46px;align-items:center}
+  @media(max-width:940px){.spot{grid-template-columns:1fr;gap:34px}}
+  .router{display:inline-flex;align-items:center;gap:10px;padding:11px 18px;border-radius:12px;font-weight:600;
+    font-family:"Space Grotesk",sans-serif;font-size:.9rem;color:#2a1c06;background:var(--grad);
+    box-shadow:0 12px 30px rgba(234,88,12,.3);margin-bottom:20px}
+  .tiers{display:flex;flex-direction:column;gap:14px}
+  .tier{display:flex;gap:18px;align-items:flex-start;padding:20px 22px;border-radius:var(--r-sm);
+    background:var(--glass);border:1px solid var(--line);position:relative;overflow:hidden;
+    transition:transform .18s,border-color .18s}
+  .tier:hover{transform:translateX(5px);border-color:var(--line-2)}
+  .tier::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px}
+  .tier.t1::before{background:linear-gradient(#34d399,#10b981)}
+  .tier.t2::before{background:linear-gradient(#f87171,#dc2626)}
+  .tier.t3::before{background:linear-gradient(#fbbf24,#ea580c)}
+  .tier .badge{flex:0 0 auto;width:62px;height:62px;border-radius:13px;display:grid;place-items:center;text-align:center;
+    font-family:"Space Grotesk",sans-serif;font-weight:700;font-size:1.5rem;line-height:1.1}
+  .tier.t1 .badge{background:rgba(52,211,153,.14);border:1px solid rgba(52,211,153,.4)}
+  .tier.t2 .badge{background:rgba(248,113,113,.13);border:1px solid rgba(248,113,113,.4)}
+  .tier.t3 .badge{background:rgba(251,191,36,.14);border:1px solid rgba(251,191,36,.4)}
+  .tier h3{margin:0 0 3px;font-size:1rem}
+  .tier .rng{font-size:.78rem;font-weight:600;color:var(--muted-2);font-family:"JetBrains Mono",monospace;margin-bottom:6px}
+  .tier p{margin:0;color:var(--muted);font-size:.88rem;line-height:1.5}
+  .spot .note{margin-top:22px;font-size:.9rem;color:var(--ink-2);display:flex;gap:11px;align-items:flex-start}
+  .spot .note span{color:var(--em);font-size:1.1rem}
+
+  /* loop visual */
+  .loopwrap{display:flex;flex-direction:column;gap:0;align-items:stretch}
+  .lstep{display:flex;align-items:center;gap:16px;padding:18px 20px;border-radius:var(--r-sm);
+    background:var(--glass);border:1px solid var(--line);position:relative}
+  .lstep .ln{font-family:"JetBrains Mono",monospace;font-size:.72rem;font-weight:700;color:var(--em);
+    width:30px;flex:0 0 auto}
+  .lstep h3{font-size:.98rem;margin:0 0 2px}
+  .lstep small{color:var(--muted);font-size:.82rem;display:block;line-height:1.45}
+  .lstep .ic{flex:0 0 auto;width:42px;height:42px;border-radius:11px;display:grid;place-items:center;font-size:1.2rem;
+    background:linear-gradient(140deg,rgba(251,191,36,.16),rgba(234,88,12,.06));border:1px solid rgba(251,191,36,.24)}
+  .lconn{display:flex;align-items:center;justify-content:center;gap:10px;padding:7px 0;color:var(--muted-2);font-size:.72rem;
+    font-family:"JetBrains Mono",monospace}
+  .lconn .bar{width:2px;height:14px;background:linear-gradient(rgba(180,150,100,.3),rgba(251,191,36,.7))}
+  .retry{margin-top:14px;display:flex;align-items:center;gap:10px;justify-content:center;font-size:.82rem;color:var(--ember);
+    font-weight:600;background:rgba(251,146,60,.08);border:1px dashed rgba(251,146,60,.4);border-radius:11px;padding:11px 16px}
+  .outs{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
+  .out{flex:1 1 140px;text-align:center;padding:13px 10px;border-radius:11px;font-size:.82rem;font-weight:600}
+  .out small{display:block;font-weight:400;font-size:.72rem;margin-top:3px;font-family:"Inter",sans-serif}
+  .out.ok{color:var(--ok);background:rgba(52,211,153,.08);border:1px solid rgba(52,211,153,.3)}
+  .out.bad{color:var(--bad);background:rgba(248,113,113,.07);border:1px solid rgba(248,113,113,.3)}
+  .out.warn{color:var(--gold);background:rgba(252,211,77,.07);border:1px solid rgba(252,211,77,.3)}
+
+  /* policy layers */
+  .layers{display:flex;flex-direction:column;gap:16px}
+  .layer{padding:22px;border-radius:var(--r-sm);background:var(--glass);border:1px solid var(--line)}
+  .layer .h{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+  .layer .ln{font-family:"JetBrains Mono",monospace;font-size:.72rem;font-weight:700;color:#2a1c06;
+    background:var(--grad);padding:4px 9px;border-radius:6px}
+  .layer h3{margin:0;font-size:1rem}
+  .layer p{margin:0;color:var(--muted);font-size:.88rem}
+  .ruleset{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+  .rule{font-family:"JetBrains Mono",monospace;font-size:.72rem;font-weight:600;color:var(--gold);
+    background:rgba(252,211,77,.08);border:1px solid rgba(252,211,77,.22);padding:6px 11px;border-radius:7px}
+
+  /* stack chips grid */
+  .stack{display:grid;grid-template-columns:repeat(5,1fr);gap:13px}
+  @media(max-width:900px){.stack{grid-template-columns:repeat(3,1fr)}}
+  @media(max-width:560px){.stack{grid-template-columns:repeat(2,1fr)}}
+  .sc{padding:16px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-sm);text-align:center;
+    transition:transform .16s,border-color .16s}
+  .sc:hover{transform:translateY(-3px);border-color:rgba(251,191,36,.35)}
+  .sc .bd{width:34px;height:34px;border-radius:9px;margin:0 auto 10px;display:grid;place-items:center;font-weight:700;
+    font-size:.74rem;color:#2a1c06;background:var(--grad);font-family:"Space Grotesk",sans-serif}
+  .sc h3{font-size:.86rem;margin:0 0 2px}
+  .sc small{color:var(--muted-2);font-size:.74rem}
+
+  /* two-up small cards */
+  .duo{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  @media(max-width:760px){.duo{grid-template-columns:1fr}}
+
+  /* ---- native journey diagram ---- */
+  .panel{background:var(--glass);border:1px solid var(--line);border-radius:var(--r);padding:38px 28px;
+    box-shadow:var(--sh-md);backdrop-filter:blur(12px);overflow-x:auto}
+  .node{position:relative;border-radius:12px;padding:12px 18px;font-family:"Space Grotesk",sans-serif;font-weight:600;
+    font-size:.86rem;color:#fff;text-align:center;background:rgba(255,255,255,.05);border:1px solid var(--line-2);white-space:nowrap}
+  .node small{display:block;font-family:"Inter",sans-serif;font-weight:400;font-size:.74rem;color:var(--muted);margin-top:2px;white-space:normal}
+  .node.start{background:var(--grad);color:#2a1c06;border:none;border-radius:999px;box-shadow:0 10px 26px rgba(234,88,12,.32)}
+  .node.dec{background:rgba(251,191,36,.12);border:1px solid rgba(251,191,36,.45);color:var(--gold);border-radius:999px}
+  .node.leaf{border-color:rgba(251,191,36,.4)}
+  .node.ok{border-color:rgba(52,211,153,.55);color:#6ee7b7;background:rgba(52,211,153,.07)}
+  .node.bad{border-color:rgba(248,113,113,.5);color:#fca5a5;background:rgba(248,113,113,.07)}
+  .arw{width:2px;height:22px;margin:8px auto;background:linear-gradient(rgba(180,150,100,.3),rgba(251,191,36,.7));position:relative;flex:0 0 auto}
+  .arw::after{content:"";position:absolute;bottom:-1px;left:50%;transform:translateX(-50%);
+    border-left:5px solid transparent;border-right:5px solid transparent;border-top:6px solid rgba(251,191,36,.78)}
+  .arw .el{position:absolute;left:14px;top:50%;transform:translateY(-50%);font-family:"JetBrains Mono",monospace;
+    font-size:.68rem;color:var(--muted-2);white-space:nowrap;font-weight:600}
+  .jflow{display:flex;flex-direction:column;align-items:center;min-width:560px}
+  .jcols{display:grid;grid-template-columns:1fr 1fr;gap:36px;width:100%;max-width:740px}
+  .jcol{display:flex;flex-direction:column;align-items:center}
+  .lane{font-family:"Space Grotesk",sans-serif;font-size:.68rem;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--muted-2);margin-bottom:13px}
+  .fork{position:relative;width:100%;max-width:740px;height:24px}
+  .fork span{position:absolute;background:rgba(251,191,36,.55)}
+  .fork .v{left:50%;top:0;width:2px;height:12px;transform:translateX(-50%)}
+  .fork .h{left:25%;right:25%;top:12px;height:2px}
+  .fork .d{top:12px;width:2px;height:12px;transform:translateX(-50%)}
+  .fork .d::after{content:"";position:absolute;bottom:-1px;left:50%;transform:translateX(-50%);
+    border-left:5px solid transparent;border-right:5px solid transparent;border-top:6px solid rgba(251,191,36,.78)}
+
+  /* architecture svg */
+  .archsvg{display:block;width:100%;min-width:880px;height:auto}
+  .legend{display:flex;gap:18px;flex-wrap:wrap;justify-content:center;margin-top:22px;font-size:.78rem;color:var(--muted)}
+  .legend span{display:inline-flex;align-items:center;gap:7px}
+  .legend .sw{width:12px;height:12px;border-radius:4px}
+
+  /* cta */
+  .cta{padding:62px 44px;text-align:center;border-radius:24px;background:
+    linear-gradient(140deg,rgba(245,158,11,.16),rgba(234,88,12,.06)),var(--glass);
+    border:1px solid rgba(251,191,36,.28);box-shadow:var(--sh-glow)}
+  .cta h2{color:#fff}
+  .cta p{color:var(--ink-2);max-width:560px;margin:12px auto 30px;font-size:1.05rem}
+  .cta .btnrow{justify-content:center;margin:0}
+
+  /* footer */
+  footer{border-top:1px solid var(--line);padding:46px 0 60px;background:rgba(255,255,255,.012)}
+  footer .top{display:flex;justify-content:space-between;flex-wrap:wrap;gap:24px}
+  footer .desc{color:var(--muted-2);font-size:.88rem;max-width:340px;margin-top:8px}
+  footer .col h4{font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted-2);margin:0 0 12px}
+  footer .col a{display:block;color:var(--ink-2);font-size:.9rem;margin-bottom:9px}
+  .pfbtn{display:inline-flex;align-items:center;gap:9px;padding:13px 22px;border-radius:12px;font-weight:600;
+    font-family:"Space Grotesk",sans-serif;color:#2a1c06!important;background:var(--grad);
+    box-shadow:0 12px 30px rgba(234,88,12,.3);transition:transform .2s,box-shadow .2s}
+  .pfbtn:hover{transform:translateY(-3px);box-shadow:0 18px 42px rgba(234,88,12,.5);color:#2a1c06!important}
+  footer .legal{margin-top:38px;padding-top:22px;border-top:1px solid var(--line);color:var(--muted-2);font-size:.82rem;
+    display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<div class="topbar">
+  <div class="wrap">
+    <div class="brand"><span class="logo">🛠️</span> DevForge</div>
+    <nav class="navlinks">
+      <a href="#loop">Agentic loop</a>
+      <a href="#policy">Policy gate</a>
+      <a href="#journey">Journey</a>
+      <a href="#stack">Stack</a>
+      <a class="nav-cta" href="https://github.com/lisekarimi/devforge" target="_blank" rel="noopener">GitHub ↗</a>
+    </nav>
+  </div>
+</div>
+
+<!-- HERO -->
+<header class="hero">
+  <div class="wrap">
+    <div>
+      <span class="kicker">DevForge</span>
+      <span class="pill"><span class="dot"></span> Agentic AI engineering agent · Jira → reviewed PR</span>
+      <h1>From a Jira ticket<br/>to a <span class="grad-text">reviewed pull request.</span></h1>
+      <p class="sub">DevForge picks up a labeled Jira ticket, reads the whole repo, writes code <em>and</em> tests, validates them, self-corrects on failure, enforces engineering policy as code — then opens a <strong>draft PR</strong> for a human to approve. It never merges on its own.</p>
+      <div class="btnrow">
+        <a class="btn primary" href="#loop">See the agentic loop</a>
+        <a class="btn ghost" href="https://github.com/lisekarimi/devforge" target="_blank" rel="noopener">⌥ View on GitHub</a>
+      </div>
+      <div class="stats">
+        <div class="stat"><div class="n">≤ 3</div><div class="l">Self-correcting attempts</div></div>
+        <div class="stat"><div class="n">2-layer</div><div class="l">Policy enforcement</div></div>
+        <div class="stat"><div class="n">0</div><div class="l">Auto-merges · human decides</div></div>
+      </div>
+    </div>
+
+    <!-- console : agent run log -->
+    <div class="glass console reveal">
+      <div class="console-bar">
+        <span class="av">🛠️</span>
+        <div>
+          <div class="nm">DevForge Agent</div>
+          <div class="st">Running · attempt 1 / 3</div>
+        </div>
+        <span class="tag">JIRA → GITHUB</span>
+      </div>
+      <div class="console-body">
+        <div class="ticket"><span class="jk">KAN-12</span> Add card count badge to each column header</div>
+        <div class="logln"><span class="gl ok">✓</span><span>Cloned sandbox repo · <span class="dim">6 files in LLM context</span></span></div>
+        <div class="logln"><span class="gl ok">✓</span><span>Policy gate passed · <span class="dim">5 rules checked, 0 violations</span></span></div>
+        <div class="logln"><span class="gl ok">✓</span><span>Generated <span class="dim">app.js</span> + <span class="dim">tests/test_render.js</span></span></div>
+        <div class="logln"><span class="gl ok">✓</span><span><span class="dim">node --check</span> · <span class="dim">node --test</span> → 4 passing</span></div>
+        <div class="pr"><span>⎇</span> Draft PR #42 opened → Jira moved to <strong>Review</strong></div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- STRIP -->
+<div class="strip">
+  <div class="wrap">
+    <span class="lbl">Pipeline</span>
+    <span class="ms"><span class="sq"></span> Jira Automation</span>
+    <span class="ms"><span class="sq"></span> Power Automate</span>
+    <span class="ms"><span class="sq"></span> Python · FastAPI agent · Azure Container Apps</span>
+    <span class="ms"><span class="sq"></span> Generate → validate → retry</span>
+    <span class="ms"><span class="sq"></span> Azure AI Foundry · LLM</span>
+    <span class="ms"><span class="sq"></span> Policy gate</span>
+    <span class="ms"><span class="sq"></span> GitHub App · draft PR</span>
+  </div>
+</div>
+
+<!-- CAPABILITIES -->
+<section class="section">
+  <div class="wrap">
+    <div class="center reveal" style="margin-bottom:48px">
+      <span class="eyebrow">What it does</span>
+      <h2>An engineer's workflow, automated — <span class="grad-text">with the guardrails.</span></h2>
+      <p class="lead">Read the ticket, understand the codebase, write tested code, check it against the rules, and hand a clean draft PR to a human. Six disciplines, one loop.</p>
+    </div>
+    <div class="grid g3">
+      <div class="glass card lift reveal">
+        <div class="ico">🧠</div>
+        <h3>Context-aware generation</h3>
+        <p>The full sandbox repository is cloned per run and injected into the prompt, so generated code matches the project's real files, conventions, and APIs.</p>
+        <div class="tags"><span class="t">full-repo context</span><span class="t">code + tests</span></div>
+      </div>
+      <div class="glass card lift reveal">
+        <div class="ico">🧪</div>
+        <h3>Test-driven validation gate</h3>
+        <p>Before anything is committed, generated code runs through syntax checks and the project's own test suite — <code>node --check</code> then <code>node --test</code>.</p>
+        <div class="tags"><span class="t">syntax check</span><span class="t">unit tests</span></div>
+      </div>
+      <div class="glass card lift reveal">
+        <div class="ico">♻️</div>
+        <h3>Self-healing retry loop</h3>
+        <p>When validation fails, the exact errors are fed back to the LLM to fix its own output — iterating up to three attempts. This is what makes it agentic, not one-shot.</p>
+        <div class="tags"><span class="t">failure feedback</span><span class="t">≤ 3 attempts</span></div>
+      </div>
+      <div class="glass card lift reveal">
+        <div class="ico">🛡️</div>
+        <h3>Dual-layer policy enforcement</h3>
+        <p>The LLM is asked to refuse policy-violating tickets (semantic), <em>and</em> a deterministic Python gate scans every generated file against pattern rules. Both must pass.</p>
+        <div class="tags"><span class="t">LLM refusal</span><span class="t">deterministic scan</span></div>
+      </div>
+      <div class="glass card lift reveal">
+        <div class="ico">📜</div>
+        <h3>Policy-as-Code</h3>
+        <p>Engineering rules live in versioned YAML, auditable in git. Add, remove, or tighten a constraint by editing a file — no code change, no redeploy.</p>
+        <div class="tags"><span class="t">rules.yaml</span><span class="t">git-versioned</span></div>
+      </div>
+      <div class="glass card lift reveal">
+        <div class="ico">👤</div>
+        <h3>Human-in-the-loop by design</h3>
+        <p>Output is always a <strong>draft</strong> PR with the agent's reasoning and validation summary. A reviewer approves every merge — the agent never ships on its own.</p>
+        <div class="tags"><span class="t">draft-PR only</span><span class="t">never auto-merge</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- AGENTIC LOOP SPOTLIGHT -->
+<section class="section" id="loop" style="border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:rgba(255,255,255,.012)">
+  <div class="wrap">
+    <div class="spot">
+      <div class="reveal">
+        <span class="eyebrow">The agentic loop</span>
+        <h2>It writes, checks its own work, <span class="grad-text">and fixes it.</span></h2>
+        <p class="lead" style="margin-bottom:6px">Every run is a closed loop: generate → enforce policy → validate against real tests. A failure isn't the end — the validator's errors become the next prompt, and the agent tries again, up to three times.</p>
+        <div class="note"><span>♻️</span><p>Each attempt runs in a <b style="color:#fff">clean clone</b> of the repo — no state leaks between tries, so every retry is reproducible and honest.</p></div>
+      </div>
+      <div class="reveal">
+        <div class="loopwrap">
+          <div class="lstep">
+            <span class="ln">01</span><div class="ic">✍️</div>
+            <div><h3>Generate</h3><small>LLM writes source + tests from the ticket and full repo context.</small></div>
+          </div>
+          <div class="lconn"><span class="bar"></span></div>
+          <div class="lstep">
+            <span class="ln">02</span><div class="ic">🛡️</div>
+            <div><h3>Policy gate</h3><small>LLM refusal + deterministic Python scan. A violation blocks the run.</small></div>
+          </div>
+          <div class="lconn"><span class="bar"></span></div>
+          <div class="lstep">
+            <span class="ln">03</span><div class="ic">🧪</div>
+            <div><h3>Validate</h3><small>Syntax check + the project's test suite on the generated code.</small></div>
+          </div>
+          <div class="retry">↻ On failure, errors are fed back to the LLM — retry up to 3×</div>
+          <div class="outs">
+            <div class="out ok">✓ Success<small>Draft PR · → Review</small></div>
+            <div class="out bad">⛔ Blocked<small>Policy violation</small></div>
+            <div class="out warn">✗ Failed<small>3 attempts exhausted</small></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- POLICY GATE SPOTLIGHT -->
+<section class="section" id="policy">
+  <div class="wrap">
+    <div class="spot">
+      <div class="reveal" style="order:2">
+        <div class="layers">
+          <div class="layer">
+            <div class="h"><span class="ln">LAYER 1</span><h3>LLM refusal — semantic</h3></div>
+            <p>The policy text is in the prompt. If a ticket asks for something forbidden, the model refuses to generate code and returns the rule it would have broken.</p>
+          </div>
+          <div class="layer">
+            <div class="h"><span class="ln">LAYER 2</span><h3>Deterministic Python gate</h3></div>
+            <p>Every generated file is pattern-scanned against the YAML rules — catching anything the model might have slipped through. Both layers must pass before a commit.</p>
+          </div>
+        </div>
+        <div class="ruleset">
+          <span class="rule">NO_SECRETS_IN_CODE</span>
+          <span class="rule">NO_DISABLE_SECURITY</span>
+          <span class="rule">NO_EVAL_OR_EXEC</span>
+          <span class="rule">NO_DELETE_EXISTING_TESTS</span>
+          <span class="rule">NO_PRODUCTION_CONFIG_CHANGES</span>
+        </div>
+      </div>
+      <div class="reveal" style="order:1">
+        <span class="eyebrow">Policy as code</span>
+        <h2>Some tickets <span class="grad-text">should never ship.</span></h2>
+        <p class="lead" style="margin-bottom:6px">Engineering rules are declared in versioned YAML and enforced twice. A ticket asking to hardcode an API key, disable a security check, or touch production config is <strong>refused before any code is written</strong> — the ticket moves to <strong>Blocked</strong> with a full audit trail.</p>
+        <div class="note"><span>🔒</span><p>Three deterministic outcomes — <b style="color:#fff">success · failed · blocked</b> — drive the downstream Jira transition every time. No ambiguity for the reviewer.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- USER JOURNEY -->
+<section class="section" id="journey" style="border-top:1px solid var(--line);background:rgba(255,255,255,.012)">
+  <div class="wrap">
+    <div class="center reveal" style="margin-bottom:42px">
+      <span class="eyebrow">User journey</span>
+      <h2>From ticket to reviewed code</h2>
+      <p class="lead">A developer adds one label. About thirty seconds later, the work is done, validated, and waiting for review — or safely blocked.</p>
+    </div>
+    <div class="panel reveal">
+      <div class="jflow">
+        <div class="node start">Developer creates ticket <small style="color:rgba(42,28,6,.7)">adds the <b>ai-augmented</b> label</small></div>
+        <div class="arw"><span class="el">~30s · automated</span></div>
+        <div class="node dec">Policy check passes?</div>
+        <div class="fork"><span class="v"></span><span class="h"></span><span class="d" style="left:25%"></span><span class="d" style="left:75%"></span></div>
+        <div class="jcols">
+          <div class="jcol">
+            <div class="lane">Blocked</div>
+            <div class="node bad">No — policy violation</div>
+            <div class="arw"></div>
+            <div class="node bad">No code written ⛔<small>status: Blocked · rule explained on Jira</small></div>
+          </div>
+          <div class="jcol">
+            <div class="lane">Build</div>
+            <div class="node leaf">Yes — generate code + tests</div>
+            <div class="arw"></div>
+            <div class="node dec">Tests pass? <small style="color:var(--muted)">retry up to 3×</small></div>
+            <div class="arw"></div>
+            <div class="node ok">Draft PR opened ✓<small>+ Jira comment · status: Review</small></div>
+          </div>
+        </div>
+        <div class="arw"></div>
+        <div class="node start">Human reviewer decides <small style="color:rgba(42,28,6,.7)">approve &amp; merge · or request changes</small></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STACK -->
+<section class="section" id="stack">
+  <div class="wrap">
+    <div class="center reveal">
+      <span class="eyebrow">Architecture approach</span>
+      <h2>Hybrid: <span class="grad-text">low-code + pro-code</span></h2>
+      <p class="lead">Low-code (Jira Automation + Power Automate) handles the event-driven orchestration and Jira write-backs; a pro-code Python / FastAPI service runs the agentic reasoning, with deterministic validation and policy enforcement.</p>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="section" style="padding-top:40px">
+  <div class="wrap">
+    <div class="cta reveal">
+      <h2>Trust &amp; governance, built in.</h2>
+      <p>A clean draft PR for legitimate work — a blocked ticket with a full audit trail for anything risky. Exactly what enterprises need to adopt AI in the engineering loop.</p>
+      <div class="btnrow">
+        <a class="btn primary" href="https://github.com/lisekarimi/devforge" target="_blank" rel="noopener">⌥ Explore the code</a>
+        <a class="btn ghost" href="https://github.com/lisekarimi/devforge#readme" target="_blank" rel="noopener">🗺️ Architecture &amp; flow diagrams</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="wrap">
+    <div class="top">
+      <div>
+        <div class="brand"><span class="logo">🛠️</span> DevForge</div>
+        <p class="desc">An agentic AI engineering agent that turns Jira tickets into reviewed pull requests — code, tests, policy, and human approval in one loop.</p>
+      </div>
+      <div class="col">
+        <h4>Project</h4>
+        <a href="https://github.com/lisekarimi/devforge" target="_blank" rel="noopener">GitHub repository</a>
+        <a href="https://github.com/lisekarimi/devforge#readme" target="_blank" rel="noopener">README &amp; setup</a>
+      </div>
+      <div class="col" style="align-self:center">
+        <a class="pfbtn" href="https://lisekarimi.com" target="_blank" rel="noopener">✨ More projects →</a>
+      </div>
+    </div>
+    <div class="legal">
+      <span>© <span id="yr">2026</span> · Built with FastAPI, GitHub App, Jira Automation &amp; Power Automate.</span>
+      <span>Generate · Validate · Self-correct · Policy gate · Human-in-the-loop</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+  const io=new IntersectionObserver((es)=>{es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}})},{threshold:.14});
+  document.querySelectorAll('.reveal').forEach((el,i)=>{el.style.transitionDelay=(Math.min(i%3,2)*80)+'ms';io.observe(el)});
+  document.getElementById('yr').textContent=new Date().getFullYear();
+</script>
+</body>
+</html>

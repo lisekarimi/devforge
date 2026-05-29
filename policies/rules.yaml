@@ -1,0 +1,52 @@
+# yaml-language-server: $schema=
+
+# Company engineering policies for the AI agent.
+# The agent reads these rules and refuses tasks that would violate them.
+
+version: 1
+
+rules:
+  - id: NO_SECRETS_IN_CODE
+    description: |
+      Never write API keys, tokens, passwords, or other secrets directly in source code.
+      Secrets must always come from environment variables or a secret manager.
+    forbidden_patterns:
+      - 'api[_-]?key\s*=\s*["''][a-zA-Z0-9]{20,}'
+      - 'password\s*=\s*["''][^"'']+["'']'
+      - 'sk-[a-zA-Z0-9]{20,}'
+
+  - id: NO_DISABLE_SECURITY
+    description: |
+      Do not disable, bypass, or weaken security features such as authentication checks,
+      CSRF protection, CORS restrictions, or input validation.
+    forbidden_patterns:
+      - 'csrf[_-]?exempt'
+      - 'verify\s*=\s*False'
+      - 'rejectUnauthorized\s*:\s*false'
+
+  - id: NO_EVAL_OR_EXEC
+    description: |
+      Never use eval(), exec(), or equivalent dynamic code execution.
+      These create remote code execution vulnerabilities.
+    forbidden_patterns:
+      - '\beval\s*\('
+      - '\bexec\s*\('
+      - 'Function\s*\(["''].*["'']'
+
+  - id: NO_DELETE_EXISTING_TESTS
+    description: |
+      Do not delete or disable existing test files. Tests can be added or extended,
+      but never removed without explicit human authorization.
+    forbidden_actions:
+      - delete_test_file
+
+  - id: NO_PRODUCTION_CONFIG_CHANGES
+    description: |
+      Do not modify files matching patterns like .env, *.production.*, config/prod*,
+      or any file under deploy/ or infrastructure/.
+    forbidden_paths:
+      - '.env'
+      - '.env.production'
+      - 'deploy/'
+      - 'infrastructure/'
+      - 'config/prod'
